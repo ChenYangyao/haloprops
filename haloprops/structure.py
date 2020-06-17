@@ -134,6 +134,7 @@ class StructurePredictor:
             for each halo.
             Available predictors can be obtained by available_predictors static
             member.
+            Unit for halo mass is [10^10 Msun/h].
         @method: 'boosting | 'random forest', which regressor to use in the
             template-fitting. 
         @regression_kws: additional keywords arguments passed into template-
@@ -219,7 +220,10 @@ class StructurePredictor:
         ybins, yresidual = np.zeros(ny, dtype=float), np.zeros(ny, dtype=float)
         for i in range(ny):
             sel = np.array((y_pred - ylo) / ystep, dtype=int) == i
-            yresidual[i] = np.std(dy[sel])
+            if sel.sum() < 3:
+                yresidual[i] = yresidual[i-1] if i > 0 else 0.
+            else:
+                yresidual[i] = np.std(dy[sel])
             ybins[i] = ylo + (i+0.5)*ystep
         self.interp_noise = interp.interp1d( ybins, yresidual, 
             kind=kind, fill_value = 'extrapolate')
